@@ -1,5 +1,5 @@
 {
-  "name": "CHATBOT_SWPS",
+  "name": "CHATBOT_arXiv",
   "private": true,
   "scripts": {
     "build": "turbo run build",

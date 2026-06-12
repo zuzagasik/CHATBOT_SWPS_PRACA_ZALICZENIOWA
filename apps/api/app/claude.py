@@ -5,7 +5,8 @@ import os
 import anthropic
 
 from app.knowledge import MAIN_KNOWLEDGE
-from app.repository import search_as_text
+# from app.repository import search_as_text
+from app.arxiv_search import search_arxiv_as_text
 
 MODEL = "claude-opus-4-8"
 MAX_TOKENS = 2048
@@ -28,21 +29,24 @@ RAG_ENABLED = _env_flag("RAG_ENABLED", True)
 
 # Część wspólna instrukcji (niezależna od RAG).
 _INSTRUCTIONS_BASE = (
-    "You are the CHATBOT SWPS assistant, a helpful and concise chatbot. "
+    "You are a virtual academic assistant, a helpful and concise chatbot. "
+    "Your goal is to help students analyze and understand scientific papers. "
     "Always respond in Polish, regardless of the language the user writes in. "
     "Answer the user directly and clearly. Respond with your final answer "
     "only — do not include exploratory reasoning or meta-commentary. "
     "Prefer information from the knowledge base below when it is relevant. "
-    "Use the gangsta like language style of the 1990s Polish hip-hop, but keep it appropriate and respectful. "
+    "Format your responses clearly — use short paragraphs, bulleted lists, and bold text for key concepts to facilitate learning and comprehension. "
+    "Use a language style similar to that of a teacher, keep your responses clear to understand. "
 )
 
 # Dodatek instrukcji aktywny tylko, gdy RAG jest włączony.
 _INSTRUCTIONS_RAG = (
-    "When the question concerns SWPS research, publications, authors or "
-    "academic topics, first call the `szukaj_w_repozytorium` tool to fetch "
-    "matching publications, then answer based on the results and cite the "
-    "source links. "
+    "When a question relates to research, articles, authors, or scientific topics "
+    "(especially in computer science, AI, physics, or mathematics), you must always first "
+    "call the `search_in_arxiv` tool to retrieve matching publications from the global database. "
+    "Then, formulate your answer based on these results and strictly include PDF links to the sources."
 )
+
 
 _INSTRUCTIONS_TAIL = (
     "If the answer is not available, answer from general knowledge and say so."
@@ -50,26 +54,26 @@ _INSTRUCTIONS_TAIL = (
 
 _INSTRUCTIONS = _INSTRUCTIONS_BASE + (_INSTRUCTIONS_RAG if RAG_ENABLED else "") + _INSTRUCTIONS_TAIL
 
-# Narzędzie udostępniane modelowi: wyszukiwanie w repozytorium SWPS na żądanie.
+# Narzędzie udostępniane modelowi: wyszukiwanie w bazie danych arXiv na żądanie.
 # Stabilne między zapytaniami, więc nie psuje prompt cache.
 _TOOLS = [
     {
-        "name": "szukaj_w_repozytorium",
+        "name": "search_in_arxiv",
         "description": (
-            "Przeszukuje repozytorium naukowe SWPS (DSpace) i zwraca pasujące "
-            "publikacje: tytuł, autorów, rok, słowa kluczowe, abstrakt i link. "
-            "Wywołaj, gdy pytanie dotyczy publikacji, badań, autorów lub tematów "
-            "naukowych SWPS — zanim udzielisz odpowiedzi."
+            "Searches the global arXiv database of scientific preprints and returns "
+            "matching publications: title, authors, date, abstract, and PDF link. "
+            "Call this tool when the user asks about scientific articles, "
+            "research, or science news, BEFORE providing an answer."
         ),
         "input_schema": {
             "type": "object",
             "properties": {
-                "zapytanie": {
+                "query": {
                     "type": "string",
-                    "description": "Słowa kluczowe do wyszukania (temat, autor, tytuł).",
+                    "description": "Keywords to search in arXiv (preferably in English, e.g., 'machine learning transformers').",
                 }
             },
-            "required": ["zapytanie"],
+            "required": ["query"],
         },
     }
 ]
@@ -128,13 +132,13 @@ def generate_reply(message: str, history: list[dict] | None = None) -> str:
         messages.append({"role": "assistant", "content": response.content})
         tool_results = []
         for block in response.content:
-            if block.type == "tool_use" and block.name == "szukaj_w_repozytorium":
-                query = (block.input or {}).get("zapytanie", "")
+            if block.type == "tool_use" and block.name == "search_in_arxiv":
+                query = (block.input or {}).get("query", "")
                 tool_results.append(
                     {
                         "type": "tool_result",
                         "tool_use_id": block.id,
-                        "content": search_as_text(query),
+                        "content": search_arxiv_as_text(query),
                     }
                 )
         messages.append({"role": "user", "content": tool_results})

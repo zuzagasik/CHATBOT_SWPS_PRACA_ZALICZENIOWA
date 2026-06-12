@@ -13,7 +13,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
 
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([
-    { role: "bot", text: "Cześć! Zapytaj mnie o dorobek naukowy SWPS." },
+    { role: "bot", text: "Cześć! Zapytaj mnie o dowolne artykuły naukowe z globalnej bazy arXiv (np. 'Zbadaj najnowsze publikacje o Explainable AI')." },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
