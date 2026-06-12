@@ -44,24 +44,47 @@ export default function Chat() {
     setLoading(true);
 
     try {
+      // const res = await fetch(`${API_URL}/chat`, {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ message: text, history }),
+      // });
       const res = await fetch(`${API_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text, history }),
       });
+    if (!res.body) throw new Error("Brak strumienia");
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data?.error ?? `Żądanie nie powiodło się (${res.status})`);
-      }
+    // Dodajemy pustą wiadomość bota, którą będziemy uzupełniać
+    setMessages((prev) => [...prev, { role: "bot", text: "" }]);
 
-      setMessages((prev) => [...prev, { role: "bot", text: data.reply }]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Coś poszło nie tak");
-    } finally {
-      setLoading(false);
+    while (true) {
+      const {value, done} = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, {stream: true});
+      setMessages((prev) => {
+        const next = [...prev];
+        const last = next[next.length - 1];
+        next[next.length - 1] = {...last, text: last.text + chunk};
+        return next;
+      });
     }
-  }
+
+    //   const data = await res.json();
+    //   if (!res.ok) {
+    //     throw new Error(data?.error ?? `Żądanie nie powiodło się (${res.status})`);
+    //   }
+    //
+    //   setMessages((prev) => [...prev, { role: "bot", text: data.reply }]);
+    // } catch (err) {
+    //   setError(err instanceof Error ? err.message : "Coś poszło nie tak");
+    // } finally {
+    //   setLoading(false);
+    // }
 
   return (
     <div className="card shadow-sm" style={{ width: "100%", maxWidth: 640 }}>
