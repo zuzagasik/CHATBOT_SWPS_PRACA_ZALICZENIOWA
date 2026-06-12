@@ -5,9 +5,7 @@
       {
         "name": "next"
       }
-    ],
-    "strictNullChecks": true,
-    "jsx": "react"
+    ]
   },
   "include": [
     "**/*.ts",

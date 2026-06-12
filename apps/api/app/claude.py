@@ -37,7 +37,6 @@ RAG_ENABLED = _env_flag("RAG_ENABLED", True)
 _INSTRUCTIONS_BASE = (
     "You are the arXiv virtual academic assistant, a helpful and concise chatbot. "
     "Your goal is to help students analyze and understand scientific papers. "
-    "Always translate questions to english before asking the model."
     "Always respond in Polish, regardless of the language the user writes in. "
     "Answer the user directly and clearly. Respond with your final answer "
     "only — do not include exploratory reasoning or meta-commentary. "
