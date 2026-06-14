@@ -114,7 +114,7 @@ export default function Chat() {
                   ? "bg-primary text-white"
                   : "bg-light border text-dark"
               }`}
-              style={{ maxWidth: "75%", whiteSpace: "pre-wrap" }}
+              style={{ maxWidth: "75%"}}
             >
               {m.role === "bot" ? <ReactMarkdown>{m.text}</ReactMarkdown> : m.text}
             </div>
