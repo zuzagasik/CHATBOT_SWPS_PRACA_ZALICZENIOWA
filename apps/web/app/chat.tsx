@@ -1,7 +1,6 @@
 "use client";
-
+import ReactMarkdown from "react-markdown";
 import { useEffect, useRef, useState } from "react";
-
 type Role = "user" | "bot";
 
 interface Message {
@@ -117,7 +116,7 @@ export default function Chat() {
               }`}
               style={{ maxWidth: "75%", whiteSpace: "pre-wrap" }}
             >
-              {m.text}
+              {m.role === "bot" ? <ReactMarkdown>{m.text}</ReactMarkdown> : m.text}
             </div>
           </div>
         ))}
