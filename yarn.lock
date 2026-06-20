@@ -821,6 +821,7 @@ __metadata:
   resolution: "CHATBOT_arXiv@workspace:."
   dependencies:
     prettier: "npm:^3.7.4"
+    react-markdown: "npm:^10.1.0"
     turbo: "npm:^2.9.16"
     typescript: "npm:5.9.2"
   languageName: unknown
